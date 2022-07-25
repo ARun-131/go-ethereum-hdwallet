@@ -92,6 +92,16 @@ func NewFromSeed(seed []byte) (*Wallet, error) {
 	return newWallet(seed)
 }
 
+func NewFromExtendedKey(extendedKey *hdkeychain.ExtendedKey) (*Wallet, error) {
+	return &Wallet{
+		masterKey:   extendedKey,
+		seed:        nil,
+		accounts:    []accounts.Account{},
+		paths:       map[common.Address]accounts.DerivationPath{},
+		fixIssue172: false || len(os.Getenv(issue179FixEnvar)) > 0,
+	}, nil
+}
+
 // URL implements accounts.Wallet, returning the URL of the device that
 // the wallet is on, however this does nothing since this is not a hardware device.
 func (w *Wallet) URL() accounts.URL {
@@ -282,7 +292,7 @@ func (w *Wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID
 
 	signer := types.LatestSignerForChainID(chainID)
 
-  // Sign the transaction and verify the sender to avoid hardware fault surprises
+	// Sign the transaction and verify the sender to avoid hardware fault surprises
 	signedTx, err := types.SignTx(tx, signer, privateKey)
 	if err != nil {
 		return nil, err
